@@ -9,57 +9,6 @@
 
 using namespace std; // std::vector
 
-//class PolygonMesh {
-//protected:
-//	// vertices
-//	vector<Vertex> vertices;
-//	// polygons
-//	vector<MyPolygon> polygons;
-//public:
-//	PolygonMesh() {}
-//
-//	virtual void render() {
-//		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//		
-//		for (MyPolygon polygon : polygons) {
-//			glBegin(GL_POLYGON);
-//			for (Vertex vertex : polygon.getVertices()) {
-//				//GLfloat temp[] = { ((GLfloat)rand() / (RAND_MAX)) + 1, ((GLfloat)rand() / (RAND_MAX)) + 1, ((GLfloat)rand() / (RAND_MAX)) + 1 };
-//				GLfloat temp[] = { 1.0f, 1.0f, 1.0f };
-//				vertex.setColor(temp);
-//				vertex.render();
-//			}
-//			glEnd();
-//		}
-//		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//	}
-//};
-//
-//class Cubic : public PolygonMesh {
-//public:
-//	Cubic() : PolygonMesh() {
-//		vertices.push_back(Vertex(Point(1.0f, 1.0f, 1.0f)));	// 0
-//		vertices.push_back(Vertex(Point(1.0f, 1.0f, -1.0f)));	// 1
-//		vertices.push_back(Vertex(Point(1.0f, -1.0f, -1.0f)));	// 2
-//		vertices.push_back(Vertex(Point(1.0f, -1.0f, 1.0f)));	// 3
-//		vertices.push_back(Vertex(Point(-1.0f, 1.0f, 1.0f)));	// 4
-//		vertices.push_back(Vertex(Point(-1.0f, 1.0f, -1.0f)));	// 5	
-//		vertices.push_back(Vertex(Point(-1.0f, -1.0f, -1.0f)));	// 6
-//		vertices.push_back(Vertex(Point(-1.0f, -1.0f, 1.0f)));	// 7
-//
-//		polygons.push_back(MyPolygon({ vertices[0], vertices[1], vertices[2], vertices[3] })); 
-//		polygons.push_back(MyPolygon({ vertices[4], vertices[5], vertices[6], vertices[7] }));
-//		polygons.push_back(MyPolygon({ vertices[0], vertices[1], vertices[5], vertices[4] }));
-//		polygons.push_back(MyPolygon({ vertices[0], vertices[3], vertices[7], vertices[4] }));
-//		polygons.push_back(MyPolygon({ vertices[2], vertices[3], vertices[7], vertices[6] }));
-//		polygons.push_back(MyPolygon({ vertices[1], vertices[2], vertices[6], vertices[5] }));
-//	}
-//
-//	void render() {
-//		PolygonMesh::render();
-//	}
-//};
-
 class Mesh {
 protected:
 	vector<GLfloat> vertices;
@@ -157,6 +106,7 @@ public:
 
 		for (r = 0; r < rings; ++r) {
 			for (s = 0; s < sectors; ++s) {
+				// TODO: maybe need to be changed later
 				GLfloat const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
 				GLfloat const y = sin(-M_PI_2 + M_PI * r * R);
 				GLfloat const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
@@ -182,6 +132,78 @@ public:
 				*i++ = r * sectors + (s + 1);
 				*i++ = (r + 1) * sectors + (s + 1);
 				*i++ = (r + 1) * sectors + s;
+			}
+		}
+	}
+
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
+		Mesh::draw(x, y, z, angle);
+	}
+};
+
+class Cylinder : public Mesh {
+public:
+	Cylinder(GLfloat radius, GLfloat height, GLfloat slices, GLfloat stacks) {
+		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
+		GLfloat const STACK = height / (GLfloat)(stacks - 1);
+		GLuint slice, stack;
+
+		vertices.resize(slices * (stacks + 2) * 3);
+		normals.resize(slices * (stacks + 2) * 3);
+		texcoords.resize(slices * (stacks + 2) * 2);
+
+		auto v = vertices.begin();
+		auto n = normals.begin();
+		auto t = texcoords.begin();
+
+		for (stack = 1; stack <= stacks; ++stack) {
+			for (slice = 0; slice < slices; ++slice) {
+				GLfloat const x = sin(2 * M_PI * slice * SLICE);
+				GLfloat const y = height / 2 - stack * STACK;
+				GLfloat const z = cos(2 * M_PI * slice * SLICE);
+
+				*t++ = slice * SLICE;
+				*t++ = stack * STACK;
+
+				*v++ = x * radius;
+				*v++ = y;
+				*v++ = z * radius;
+
+				*n++ = x;
+				*n++ = y;
+				*n++ = z;
+			}
+		}
+
+		for (int i = 0; i < 2; ++i) {
+			for (slice = 0; slice < slices; ++slice) {
+				GLfloat const x = sin(2 * M_PI * slice * SLICE);
+				GLfloat const y = (i == 0) ? height / 2 : -height / 2;
+				GLfloat const z = cos(2 * M_PI * slice * SLICE);
+
+				*t++ = 0.5 + 0.5 * cos(2 * M_PI * slice * SLICE);
+				*t++ = 0.5 - 0.5 * sin(2 * M_PI * slice * SLICE);
+
+				*v++ = x * radius;
+				*v++ = y;
+				*v++ = z * radius;
+
+				*n++ = x;
+				*n++ = y;
+				*n++ = z;
+
+			}
+		}
+
+		indices.resize(slices * (stacks + 2) * 4);
+		std::vector<GLushort>::iterator it
+			= indices.begin();
+		for (stack = 0; stack < stacks + 1; stack++) {
+			for (slice = 0; slice < slices - 1; slice++) {
+				*it++ = stack * slices + slice;
+				*it++ = stack * slices + (slice + 1);
+				*it++ = (stack + 1) * slices + (slice + 1);
+				*it++ = (stack + 1) * slices + slice;
 			}
 		}
 	}

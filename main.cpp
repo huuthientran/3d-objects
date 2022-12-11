@@ -1,7 +1,4 @@
 #include <Windows.h>
-#include <GL/glut.h>
-#include "SOIL.h"
-#include <iostream>
 #include "Mesh/Mesh.h"
 
 using namespace std;
@@ -195,6 +192,11 @@ void display() {
 	Cube cube(1.0f);
 	cube.draw(1.0f, 0.0f, -7.0f, angleCube);
 	//glRotatef(angleCube, 1.0f, 1.0f, 1.0f);
+
+	Cylinder cylinder(1.0f, 2.0f, 36, 18);
+	cylinder.draw(-1.0f, 0.0f, -7.0f, angleCube);
+
+
 	{
 		// Render a pyramid consists of 4 triangles
 		glLoadIdentity(); // Reset the model-view matrix
