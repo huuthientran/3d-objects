@@ -15,7 +15,7 @@ int loadGLTextures() // Load Bitmaps And Convert To Textures
 	/* load an image file directly as a new OpenGL texture */
 	textureID[0] = SOIL_load_OGL_texture
 	(
-		"Data/texture3.jpg",
+		"Data/texture4.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
@@ -185,16 +185,15 @@ void display() {
 
 	//glLoadIdentity();
 	glColor3f(1.0f, 1.0f, 1.0f);
-	Sphere sphere(1.0f, 36, 36);
+	Sphere sphere(2.0f, 36, 36);
 	sphere.draw(1.5f, -2.0f, -7.0f, angleCube);
 
 	//glLoadIdentity();
 	Cube cube(1.0f);
-	//cube.draw(1.0f, 0.0f, -7.0f, angleCube);
-	//glRotatef(angleCube, 1.0f, 1.0f, 1.0f);
-
+	cube.draw(1.0f, 0.0f, -7.0f, angleCube);
+	
 	Cylinder cylinder(1.0f, 3.0f, 36, 18);
-	cylinder.draw(1.5f, -2.0f, -7.0f, angleCube);
+	cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
 
 
 	{

@@ -52,18 +52,27 @@ public:
 
 		for (GLuint i = 0; i < 6; ++i) {
 			for (GLuint j = 0; j < 4; ++j) {
-				//cout << "i and j: " << i << " " << j << "\n";
-				GLfloat unit = (i < 3) ? 1.0f : -1.0f;
-				GLfloat const x = (i % 3 == 0 || j % 4 < 2) ? unit : -unit;
-				GLfloat const y = (i % 3 == 1 || (i % 3 == 0 && (j == 0 || j == 1)) || (i % 3 == 2 && (j == 0 || j == 3))) ? unit : -unit;
-				GLfloat const z = (i % 3 == 2 || (j == 0 || j == 3)) ? unit : -unit;
 
-				//cout << x << " " << y << " " << z << endl;
+				GLfloat const x = (i == 0
+					|| (i == 1 && (j == 0 || j == 3))
+					|| (i == 2 && (j == 0 || j == 1))
+					|| (i == 4 && (j == 2 || j == 3))
+					|| (i == 5 && (j == 1 || j == 2))) ? 1.0f : -1.0f;
 
-				*t++ = (i % 2 == 0 && (j == 0 || j == 3) || i % 2 == 1 && (j == 0 || j == 1)) ? 1.0f : 0.0f;
-				*t++ = (i % 2 == 0 && (j == 0 || j == 1) || i % 2 == 1 && (j == 0 || j == 3)) ? 1.0f : 0.0f;
-				//cout	<< "t = " << ((i % 2 == 0 && (j == 0 || j == 3) || i % 2 == 1 && (j == 0 || j == 1)) ? 1.0f : 0.0f) 
-				//		<< " " << ((i % 2 == 0 && (j == 0 || j == 1) || i % 2 == 1 && (j == 0 || j == 3)) ? 1.0f : 0.0f) << endl;
+				GLfloat const y = (i == 1
+					|| (i == 0 && (j == 0 || j == 1))
+					|| (i == 2 && (j == 0 || j == 3))
+					|| (i == 3 && (j == 1 || j == 2))
+					|| (i == 5 && (j == 2 || j == 3))) ? 1.0f : -1.0f;
+
+				GLfloat const z = (i == 2
+					|| (i == 0 && (j == 0 || j == 3))
+					|| (i == 1 && (j == 0 || j == 1))
+					|| (i == 3 && (j == 2 || j == 3))
+					|| (i == 4 && (j == 1 || j == 2))) ? 1.0f : -1.0f;
+
+				*t++ = (j == 0 || j == 3) ? 1.0f : 0.0f;
+				*t++ = (j == 0 || j == 1) ? 1.0f : 0.0f;
 
 				*v++ = x * size;
 				*v++ = y * size;
@@ -73,7 +82,6 @@ public:
 				*n++ = y;
 				*n++ = z;
 			}
-			//cout << endl;
 		}
 
 		indices.resize(6 * 4 * 4);
@@ -197,6 +205,7 @@ public:
 		}
 
 		{
+			// Draw base and top surface
 			for (int i = 0; i < 2; ++i) {
 				GLfloat h = height / 2.0f - i * height;
 				GLfloat ny = -1 + i * 2;
@@ -243,8 +252,8 @@ public:
 				else // last triangle
 				{
 					baseIndices.push_back(baseCenterIndex);
-					baseIndices.push_back(baseCenterIndex + 1);
 					baseIndices.push_back(k);
+					baseIndices.push_back(baseCenterIndex + 1);
 				}
 			}
 
@@ -267,8 +276,10 @@ public:
 	}
 
 	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
+		// Draw side surface
 		Mesh::draw(x, y, z, angle);
 
+		// Draw top and base surface
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glTranslatef(x, y, z);
