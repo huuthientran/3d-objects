@@ -194,7 +194,7 @@ void display() {
 	//glRotatef(angleCube, 1.0f, 1.0f, 1.0f);
 
 	Cylinder cylinder(1.0f, 3.0f, 36, 18);
-	cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
+	cylinder.draw(1.5f, -2.0f, -7.0f, angleCube);
 
 
 	{

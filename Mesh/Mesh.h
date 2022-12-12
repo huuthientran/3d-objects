@@ -31,6 +31,10 @@ public:
 		glNormalPointer(GL_FLOAT, 0, &normals[0]);
 		glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
 		glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_SHORT, &indices[0]);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glPopMatrix();
 	}
 };
@@ -142,6 +146,11 @@ public:
 };
 
 class Cylinder : public Mesh {
+private:
+	vector<GLfloat> baseVertices;
+	vector<GLfloat> baseNormals;
+	vector<GLfloat> baseTexcoords;
+	vector<GLushort> baseIndices;
 public:
 	Cylinder(GLfloat radius, GLfloat height, GLfloat stacks, GLfloat slices) {
 		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
@@ -149,9 +158,9 @@ public:
 
 		GLuint slice, stack;
 
-		vertices.resize(slices * (stacks + 2) * 3);
-		normals.resize(slices * (stacks + 2) * 3);
-		texcoords.resize(slices * (stacks + 2) * 2);
+		vertices.resize(slices * stacks * 3);
+		normals.resize(slices * stacks * 3);
+		texcoords.resize(slices * stacks * 2);
 
 		auto v = vertices.begin();
 		auto n = normals.begin();
@@ -160,7 +169,7 @@ public:
 		for (stack = 0; stack < stacks; ++stack) {
 			for (slice = 0; slice < slices; ++slice) {
 				GLfloat const x = cos(2 * M_PI * slice * SLICE);
-				GLfloat const y = 1 / 2 - stack * STACK;
+				GLfloat const y = -1.0/2 + stack * STACK;
 				GLfloat const z = sin(2 * M_PI * slice * SLICE);
 
 				*t++ = slice * SLICE;
@@ -176,29 +185,8 @@ public:
 			}
 		}
 
-		//for (int i = 0; i < 2; ++i) {
-		//	for (slice = 0; slice < slices; ++slice) {
-		//		GLfloat const x = cos(2 * M_PI * slice * SLICE);
-		//		GLfloat const y = (i == 0) ? height / 2 : -height / 2;
-		//		GLfloat const z = sin(2 * M_PI * slice * SLICE);
-
-		//		*t++ = 0.5 + 0.5 * cos(2 * M_PI * slice * SLICE);
-		//		*t++ = 0.5 - 0.5 * sin(2 * M_PI * slice * SLICE);
-
-		//		*v++ = x * radius;
-		//		*v++ = y;
-		//		*v++ = z * radius;
-
-		//		*n++ = x;
-		//		*n++ = y;
-		//		*n++ = z;
-
-		//	}
-		//}
-
-		indices.resize(slices * (stacks + 2) * 4);
-		std::vector<GLushort>::iterator it
-			= indices.begin();
+		indices.resize(slices * stacks * 4);
+		std::vector<GLushort>::iterator it = indices.begin();
 		for (stack = 0; stack < stacks - 1; stack++) {
 			for (slice = 0; slice < slices - 1; slice++) {
 				*it++ = stack * slices + slice;
@@ -207,9 +195,98 @@ public:
 				*it++ = (stack + 1) * slices + slice;
 			}
 		}
+
+		{
+			for (int i = 0; i < 2; ++i) {
+				GLfloat h = height / 2.0f - i * height;
+				GLfloat ny = -1 + i * 2;
+
+				baseVertices.push_back(0);
+				baseVertices.push_back(h);
+				baseVertices.push_back(0);
+	
+				baseNormals.push_back(0);
+				baseNormals.push_back(ny);
+				baseNormals.push_back(0);
+
+				baseTexcoords.push_back(0.5f);
+				baseTexcoords.push_back(0.5f);
+
+				for (slice = 0; slice < slices; ++slice) {
+					GLfloat const x = cos(2 * M_PI * slice * SLICE);
+					GLfloat const z = sin(2 * M_PI * slice * SLICE);
+
+					baseVertices.push_back(x * radius);
+					baseVertices.push_back(h);
+					baseVertices.push_back(z * radius);
+
+					baseNormals.push_back(0);
+					baseNormals.push_back(ny);
+					baseNormals.push_back(0);
+
+					baseTexcoords.push_back(-x * 0.5f + 0.5f);
+					baseTexcoords.push_back(-z * 0.5f + 0.5f);
+				}
+			}
+
+			int baseCenterIndex = 0;
+			int topCenterIndex = baseCenterIndex + slices + 1;
+
+			for (int i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
+			{
+				if (i < slices - 1)
+				{
+					baseIndices.push_back(baseCenterIndex);
+					baseIndices.push_back(k + 1);
+					baseIndices.push_back(k);
+				}
+				else // last triangle
+				{
+					baseIndices.push_back(baseCenterIndex);
+					baseIndices.push_back(baseCenterIndex + 1);
+					baseIndices.push_back(k);
+				}
+			}
+
+			for (int i = 0, k = topCenterIndex + 1; i < slices; ++i, ++k)
+			{
+				if (i < slices - 1)
+				{
+					baseIndices.push_back(topCenterIndex);
+					baseIndices.push_back(k);
+					baseIndices.push_back(k + 1);
+				}
+				else // last triangle
+				{
+					baseIndices.push_back(topCenterIndex);
+					baseIndices.push_back(k);
+					baseIndices.push_back(topCenterIndex + 1);
+				}
+			}
+		}
 	}
 
 	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
 		Mesh::draw(x, y, z, angle);
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glTranslatef(x, y, z);
+		glRotatef(angle, 1.0f, 1.0f, 1.0f);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glVertexPointer(3, GL_FLOAT, 0, &baseVertices[0]);
+		glNormalPointer(GL_FLOAT, 0, &baseNormals[0]);
+		glTexCoordPointer(2, GL_FLOAT, 0, &baseTexcoords[0]);
+
+		glDrawElements(GL_TRIANGLES, baseIndices.size(), GL_UNSIGNED_SHORT, &baseIndices[0]);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glPopMatrix();
 	}
 };
