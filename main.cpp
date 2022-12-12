@@ -185,16 +185,16 @@ void display() {
 
 	//glLoadIdentity();
 	glColor3f(1.0f, 1.0f, 1.0f);
-	Sphere sphere(1.0f, 36, 18);
-	sphere.draw(1.5f, 3.0f, -7.0f, angleCube);
+	Sphere sphere(1.0f, 36, 36);
+	sphere.draw(1.5f, -2.0f, -7.0f, angleCube);
 
 	//glLoadIdentity();
 	Cube cube(1.0f);
-	cube.draw(1.0f, 0.0f, -7.0f, angleCube);
+	//cube.draw(1.0f, 0.0f, -7.0f, angleCube);
 	//glRotatef(angleCube, 1.0f, 1.0f, 1.0f);
 
-	Cylinder cylinder(1.0f, 2.0f, 36, 18);
-	cylinder.draw(-1.0f, 0.0f, -7.0f, angleCube);
+	Cylinder cylinder(1.0f, 3.0f, 36, 18);
+	cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
 
 
 	{

@@ -91,28 +91,28 @@ public:
 
 class Sphere : public Mesh {
 public:
-	Sphere(GLfloat radius, GLuint rings, GLuint sectors) {
-		GLfloat const R = 1. / (GLfloat)(rings - 1);
-		GLfloat const S = 1. / (GLfloat)(sectors - 1);
-		GLuint r, s;
+	Sphere(GLfloat radius, GLuint stacks, GLuint slices) {
+		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
+		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
+		GLuint stack, slice;
 
-		vertices.resize(rings * sectors * 3);
-		normals.resize(rings * sectors * 3);
-		texcoords.resize(rings * sectors * 2);
+		vertices.resize(stacks * slices * 3);
+		normals.resize(stacks * slices * 3);
+		texcoords.resize(stacks * slices * 2);
 
 		auto v = vertices.begin();
 		auto n = normals.begin();
 		auto t = texcoords.begin();
 
-		for (r = 0; r < rings; ++r) {
-			for (s = 0; s < sectors; ++s) {
+		for (stack = 0; stack < stacks; ++stack) {
+			for (slice = 0; slice < slices; ++slice) {
 				// TODO: maybe need to be changed later
-				GLfloat const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-				GLfloat const y = sin(-M_PI_2 + M_PI * r * R);
-				GLfloat const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
+				GLfloat const x = cos(2 * M_PI * slice * SLICE) * sin(M_PI * stack * STACK);
+				GLfloat const y = sin(-M_PI_2 + M_PI * stack * STACK);
+				GLfloat const z = sin(2 * M_PI * slice * SLICE) * sin(M_PI * stack * STACK);
 
-				*t++ = s * S;
-				*t++ = r * R;
+				*t++ = slice * SLICE;
+				*t++ = stack * STACK;
 
 				*v++ = x * radius;
 				*v++ = y * radius;
@@ -124,14 +124,14 @@ public:
 			}
 		}
 
-		indices.resize(rings * sectors * 4);
-		std::vector<GLushort>::iterator i = indices.begin();
-		for (r = 0; r < rings - 1; r++) {
-			for (s = 0; s < sectors - 1; s++) {
-				*i++ = r * sectors + s;
-				*i++ = r * sectors + (s + 1);
-				*i++ = (r + 1) * sectors + (s + 1);
-				*i++ = (r + 1) * sectors + s;
+		indices.resize(stacks * slices * 4);
+		std::vector<GLushort>::iterator it = indices.begin();
+		for (stack = 0; stack < stacks - 1; stack++) {
+			for (slice = 0; slice < slices - 1; slice++) {
+				*it++ = stack * slices + slice;
+				*it++ = stack * slices + (slice + 1);
+				*it++ = (stack + 1) * slices + (slice + 1);
+				*it++ = (stack + 1) * slices + slice;
 			}
 		}
 	}
@@ -143,9 +143,10 @@ public:
 
 class Cylinder : public Mesh {
 public:
-	Cylinder(GLfloat radius, GLfloat height, GLfloat slices, GLfloat stacks) {
+	Cylinder(GLfloat radius, GLfloat height, GLfloat stacks, GLfloat slices) {
+		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
 		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
-		GLfloat const STACK = height / (GLfloat)(stacks - 1);
+
 		GLuint slice, stack;
 
 		vertices.resize(slices * (stacks + 2) * 3);
@@ -156,17 +157,17 @@ public:
 		auto n = normals.begin();
 		auto t = texcoords.begin();
 
-		for (stack = 1; stack <= stacks; ++stack) {
+		for (stack = 0; stack < stacks; ++stack) {
 			for (slice = 0; slice < slices; ++slice) {
-				GLfloat const x = sin(2 * M_PI * slice * SLICE);
-				GLfloat const y = height / 2 - stack * STACK;
-				GLfloat const z = cos(2 * M_PI * slice * SLICE);
+				GLfloat const x = cos(2 * M_PI * slice * SLICE);
+				GLfloat const y = 1 / 2 - stack * STACK;
+				GLfloat const z = sin(2 * M_PI * slice * SLICE);
 
 				*t++ = slice * SLICE;
 				*t++ = stack * STACK;
 
 				*v++ = x * radius;
-				*v++ = y;
+				*v++ = y * height;
 				*v++ = z * radius;
 
 				*n++ = x;
@@ -175,30 +176,30 @@ public:
 			}
 		}
 
-		for (int i = 0; i < 2; ++i) {
-			for (slice = 0; slice < slices; ++slice) {
-				GLfloat const x = sin(2 * M_PI * slice * SLICE);
-				GLfloat const y = (i == 0) ? height / 2 : -height / 2;
-				GLfloat const z = cos(2 * M_PI * slice * SLICE);
+		//for (int i = 0; i < 2; ++i) {
+		//	for (slice = 0; slice < slices; ++slice) {
+		//		GLfloat const x = cos(2 * M_PI * slice * SLICE);
+		//		GLfloat const y = (i == 0) ? height / 2 : -height / 2;
+		//		GLfloat const z = sin(2 * M_PI * slice * SLICE);
 
-				*t++ = 0.5 + 0.5 * cos(2 * M_PI * slice * SLICE);
-				*t++ = 0.5 - 0.5 * sin(2 * M_PI * slice * SLICE);
+		//		*t++ = 0.5 + 0.5 * cos(2 * M_PI * slice * SLICE);
+		//		*t++ = 0.5 - 0.5 * sin(2 * M_PI * slice * SLICE);
 
-				*v++ = x * radius;
-				*v++ = y;
-				*v++ = z * radius;
+		//		*v++ = x * radius;
+		//		*v++ = y;
+		//		*v++ = z * radius;
 
-				*n++ = x;
-				*n++ = y;
-				*n++ = z;
+		//		*n++ = x;
+		//		*n++ = y;
+		//		*n++ = z;
 
-			}
-		}
+		//	}
+		//}
 
 		indices.resize(slices * (stacks + 2) * 4);
 		std::vector<GLushort>::iterator it
 			= indices.begin();
-		for (stack = 0; stack < stacks + 1; stack++) {
+		for (stack = 0; stack < stacks - 1; stack++) {
 			for (slice = 0; slice < slices - 1; slice++) {
 				*it++ = stack * slices + slice;
 				*it++ = stack * slices + (slice + 1);
