@@ -110,16 +110,10 @@ public:
 	Disk(GLfloat radius, GLint slices, vector<GLfloat> center, vector<GLfloat> normals) {
 		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
 
-		//vertices.push_back(0);
-		//vertices.push_back(0);
-		//vertices.push_back(0);
 		this->center.clear();
 		this->center.insert(this->center.end(), center.begin(), center.end());
 		this->vertices.insert(this->vertices.end(), this->center.begin(), this->center.end());
 
-		//normals.push_back(0);
-		//normals.push_back(1);
-		//normals.push_back(0);
 		this->normals.clear();
 		this->normals.insert(this->normals.end(), normals.begin(), normals.end());
 
@@ -130,10 +124,6 @@ public:
 			GLfloat const x = cos(2 * M_PI * slice * SLICE);
 			GLfloat const z = sin(2 * M_PI * slice * SLICE);
 
-			// TODO: draw the cone by accident :)
-			//vertices.push_back(x * radius);
-			//vertices.push_back(0);
-			//vertices.push_back(z * radius);
 			vertices.push_back(x * radius + center[0]);
 			vertices.push_back(center[1]);
 			vertices.push_back(z * radius + center[2]);
@@ -248,8 +238,8 @@ private:
 	Disk top, base;
 public:
 	Cylinder(GLfloat radius, GLfloat height, GLint stacks, GLint slices) {
-		top = Disk(radius, slices, { 0, height / 2.0f, 0 }, { 0, 1, 0 });
-		base = Disk(radius, slices, { 0, -height / 2.0f, 0 }, { 0, -1, 0 });
+		top = Disk(radius, slices, { 0, -height / 2.0f, 0 }, { 0, -1, 0 });
+		base = Disk(radius, slices, { 0, height / 2.0f, 0 }, { 0, 1, 0 });
 		this->height = height;
 
 		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
@@ -306,6 +296,88 @@ public:
 		base.draw(x, y, z, angle);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+};
+
+class Cone : public Mesh {
+private:
+	GLfloat height;
+	Disk base;
+public:
+	Cone(GLfloat radius, GLfloat height, GLint slices) {
+		base = Disk(radius, slices, { 0, 0, 0 }, { 0, 1, 0 });
+		this->height = height;
+
+		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
+
+		vertices.push_back(0);
+		vertices.push_back(this->height);
+		vertices.push_back(0);
+
+		normals.push_back(0);
+		normals.push_back(1);
+		normals.push_back(0);
+
+		texcoords.push_back(0.5f);
+		texcoords.push_back(0.5f);
+
+		for (GLuint slice = 0; slice < slices; ++slice) {
+			GLfloat const x = cos(2 * M_PI * slice * SLICE);
+			GLfloat const z = sin(2 * M_PI * slice * SLICE);
+
+			vertices.push_back(x * radius);
+			vertices.push_back(0);
+			vertices.push_back(z * radius);
+
+			normals.push_back(x);
+			normals.push_back(0);
+			normals.push_back(z);
+
+			texcoords.push_back(-x * 0.5f + 0.5f);
+			texcoords.push_back(-z * 0.5f + 0.5f);
+		}
+
+		int baseCenterIndex = 0;
+		for (int i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
+		{
+			if (i < slices - 1)
+			{
+				indices.push_back(baseCenterIndex);
+				indices.push_back(k + 1);
+				indices.push_back(k);
+			}
+			else // last triangle
+			{
+				indices.push_back(baseCenterIndex);
+				indices.push_back(k);
+				indices.push_back(baseCenterIndex + 1);
+			}
+		}
+	}
+
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
+		glPushMatrix();
+
+		glTranslatef(x, y, z);
+		glRotatef(angle, 1.0f, 1.0f, 1.0f);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);
+		glNormalPointer(GL_FLOAT, 0, &normals[0]);
+		glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
+
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, &indices[0]);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glPopMatrix();
+
+		base.draw(x, y, z, angle);
 	}
 };
 

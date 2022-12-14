@@ -185,17 +185,20 @@ void display() {
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 	Sphere sphere(2.0f, 36, 36);
-	sphere.draw(1.5f, -2.0f, -7.0f, angleCube);
+	//sphere.draw(1.5f, -2.0f, -7.0f, angleCube);
 
 	Cube cube(2.0f);
-	cube.draw(1.5f, -2.0f, -7.0f, angleCube);
+	//cube.draw(1.5f, -2.0f, -7.0f, angleCube);
 	
 	Cylinder cylinder(1.0f, 3.0f, 36, 18);
-	cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
+	//cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
 
 
 	Disk disk(2.0f, 36, { 0, 0, 0 }, {0, 1, 0});
-	disk.draw(-1.0f, -2.0f, -8.0f, angleCube);
+	//disk.draw(-1.0f, -2.0f, -8.0f, angleCube);
+
+	Cone cone(1.0f, 2.0f, 36);
+	cone.draw(1.5f, -2.0f, -7.0f, angleCube);
 
 	//{
 	//	// Render a pyramid consists of 4 triangles
