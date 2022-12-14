@@ -3,7 +3,7 @@
 
 using namespace std;
 
-char title[] = "3D Shapes";
+char title[] = "20120584 - Lab 04 - 3D Drawing";
 GLfloat anglePyramid = 0.0f; // Rotational angle for pyramid [NEW]
 GLfloat angleCube = 0.0f; // Rotational angle for cube [NEW]
 int refreshMills = 15; // refresh interval in milliseconds [NEW]
@@ -15,7 +15,7 @@ int loadGLTextures() // Load Bitmaps And Convert To Textures
 	/* load an image file directly as a new OpenGL texture */
 	textureID[0] = SOIL_load_OGL_texture
 	(
-		"Data/texture4.jpg",
+		"Data/texture5.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
@@ -183,55 +183,56 @@ void display() {
 	//PolygonMesh a = Cubic();
 	//a.render();
 
-	//glLoadIdentity();
 	glColor3f(1.0f, 1.0f, 1.0f);
 	Sphere sphere(2.0f, 36, 36);
 	sphere.draw(1.5f, -2.0f, -7.0f, angleCube);
 
-	//glLoadIdentity();
-	Cube cube(1.0f);
-	cube.draw(1.0f, 0.0f, -7.0f, angleCube);
+	Cube cube(2.0f);
+	cube.draw(1.5f, -2.0f, -7.0f, angleCube);
 	
 	Cylinder cylinder(1.0f, 3.0f, 36, 18);
 	cylinder.draw(1.0f, 0.0f, -7.0f, angleCube);
 
 
-	{
-		// Render a pyramid consists of 4 triangles
-		glLoadIdentity(); // Reset the model-view matrix
-		glTranslatef(-1.5f, 0.0f, -6.0f); // Move left and into the screen
-		glRotatef(anglePyramid, 1.0f, 1.0f, 0.0f); // Rotate about the (1,1,0)-axis [NEW]
-		glBegin(GL_TRIANGLES); // Begin drawing the pyramid with 4 triangles
-			// Front
-			glColor3f(1.0f, 0.0f, 0.0f); // Red
-			glVertex3f(0.0f, 1.0f, 0.0f);
-			glColor3f(0.0f, 1.0f, 0.0f); // Green
-			glVertex3f(-1.0f, -1.0f, 1.0f);
-			glColor3f(0.0f, 0.0f, 1.0f); // Blue
-			glVertex3f(1.0f, -1.0f, 1.0f);
-			// Right
-			glColor3f(1.0f, 0.0f, 0.0f); // Red
-			glVertex3f(0.0f, 1.0f, 0.0f);
-			glColor3f(0.0f, 0.0f, 1.0f); // Blue
-			glVertex3f(1.0f, -1.0f, 1.0f);
-			glColor3f(0.0f, 1.0f, 0.0f); // Green
-			glVertex3f(1.0f, -1.0f, -1.0f);
-			// Back
-			glColor3f(1.0f, 0.0f, 0.0f); // Red
-			glVertex3f(0.0f, 1.0f, 0.0f);
-			glColor3f(0.0f, 1.0f, 0.0f); // Green
-			glVertex3f(1.0f, -1.0f, -1.0f);
-			glColor3f(0.0f, 0.0f, 1.0f); // Blue
-			glVertex3f(-1.0f, -1.0f, -1.0f);
-			// Left
-			glColor3f(1.0f, 0.0f, 0.0f); // Red
-			glVertex3f(0.0f, 1.0f, 0.0f);
-			glColor3f(0.0f, 0.0f, 1.0f); // Blue
-			glVertex3f(-1.0f, -1.0f, -1.0f);
-			glColor3f(0.0f, 1.0f, 0.0f); // Green
-			glVertex3f(-1.0f, -1.0f, 1.0f);
-		glEnd(); // Done drawing the pyramid
-	}
+	Disk disk(2.0f, 36, { 0, 0, 0 }, {0, 1, 0});
+	disk.draw(-1.0f, -2.0f, -8.0f, angleCube);
+
+	//{
+	//	// Render a pyramid consists of 4 triangles
+	//	glLoadIdentity(); // Reset the model-view matrix
+	//	glTranslatef(-1.5f, 0.0f, -6.0f); // Move left and into the screen
+	//	glRotatef(anglePyramid, 1.0f, 1.0f, 0.0f); // Rotate about the (1,1,0)-axis [NEW]
+	//	glBegin(GL_TRIANGLES); // Begin drawing the pyramid with 4 triangles
+	//		// Front
+	//		glColor3f(1.0f, 0.0f, 0.0f); // Red
+	//		glVertex3f(0.0f, 1.0f, 0.0f);
+	//		glColor3f(0.0f, 1.0f, 0.0f); // Green
+	//		glVertex3f(-1.0f, -1.0f, 1.0f);
+	//		glColor3f(0.0f, 0.0f, 1.0f); // Blue
+	//		glVertex3f(1.0f, -1.0f, 1.0f);
+	//		// Right
+	//		glColor3f(1.0f, 0.0f, 0.0f); // Red
+	//		glVertex3f(0.0f, 1.0f, 0.0f);
+	//		glColor3f(0.0f, 0.0f, 1.0f); // Blue
+	//		glVertex3f(1.0f, -1.0f, 1.0f);
+	//		glColor3f(0.0f, 1.0f, 0.0f); // Green
+	//		glVertex3f(1.0f, -1.0f, -1.0f);
+	//		// Back
+	//		glColor3f(1.0f, 0.0f, 0.0f); // Red
+	//		glVertex3f(0.0f, 1.0f, 0.0f);
+	//		glColor3f(0.0f, 1.0f, 0.0f); // Green
+	//		glVertex3f(1.0f, -1.0f, -1.0f);
+	//		glColor3f(0.0f, 0.0f, 1.0f); // Blue
+	//		glVertex3f(-1.0f, -1.0f, -1.0f);
+	//		// Left
+	//		glColor3f(1.0f, 0.0f, 0.0f); // Red
+	//		glVertex3f(0.0f, 1.0f, 0.0f);
+	//		glColor3f(0.0f, 0.0f, 1.0f); // Blue
+	//		glVertex3f(-1.0f, -1.0f, -1.0f);
+	//		glColor3f(0.0f, 1.0f, 0.0f); // Green
+	//		glVertex3f(-1.0f, -1.0f, 1.0f);
+	//	glEnd(); // Done drawing the pyramid
+	//}
 	glutSwapBuffers(); // Swap the front and back frame buffers (double buffering)
 	// Update the rotational angle after each refresh [NEW]
 	anglePyramid += 0.2f;
