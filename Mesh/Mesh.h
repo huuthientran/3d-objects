@@ -3,6 +3,8 @@
 #include <gl/glut.h>
 #include <vector>
 #include <iostream>
+#include <cmath>
+#include "../Texture.h"
 
 #define M_PI 3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
@@ -92,10 +94,33 @@ public:
 		}
 	}
 
-	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		Mesh::draw(x, y, z, angle);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {		
+		if (wired) {
+			Mesh::draw(x, y, z, angle);
+			return;
+		}
+
+		glPushMatrix();
+		glTranslatef(x, y, z);
+		glRotatef(angle, 1.0f, 1.0f, 1.0f);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glVertexPointer(3, GL_FLOAT, 0, &vertices[0]);
+		glNormalPointer(GL_FLOAT, 0, &normals[0]);
+		glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
+
+		for (int i = 0; i < 6; ++i) {
+			glBindTexture(GL_TEXTURE_2D, textureIDList[i + 7]);
+			glDrawElements(GL_QUADS, 4, GL_UNSIGNED_SHORT, &indices[i * 4]);
+		}
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glPopMatrix();
 	}
 };
 
@@ -107,7 +132,7 @@ public:
 
 	}
 
-	Disk(GLfloat radius, GLint slices, vector<GLfloat> center, vector<GLfloat> normals) {
+	Disk(GLfloat radius, GLuint slices, vector<GLfloat> center, vector<GLfloat> normals) {
 		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
 
 		this->center.clear();
@@ -136,8 +161,8 @@ public:
 			texcoords.push_back(-z * 0.5f + 0.5f);
 		}
 
-		int baseCenterIndex = 0;
-		for (int i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
+		GLuint baseCenterIndex = 0;
+		for (GLuint i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
 		{
 			if (i < slices - 1)
 			{
@@ -155,6 +180,7 @@ public:
 	}
 
 	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
+
 		glPushMatrix();
 
 		glTranslatef(x, y, z);
@@ -226,21 +252,17 @@ public:
 	}
 
 	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		Mesh::draw(x, y, z, angle);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 };
 
 class Cylinder : public Mesh {
 private:
-	GLfloat height;
 	Disk top, base;
 public:
-	Cylinder(GLfloat radius, GLfloat height, GLint stacks, GLint slices) {
+	Cylinder(GLfloat radius, GLfloat height, GLuint stacks, GLuint slices) {
 		top = Disk(radius, slices, { 0, -height / 2.0f, 0 }, { 0, -1, 0 });
 		base = Disk(radius, slices, { 0, height / 2.0f, 0 }, { 0, 1, 0 });
-		this->height = height;
 
 		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
 		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
@@ -286,32 +308,28 @@ public:
 		}
 	}
 
-	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {
 		// Draw side surface
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[12]);
 		Mesh::draw(x, y, z, angle);
-
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[18]);
 		top.draw(x, y, z, angle);
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[24]);
 		base.draw(x, y, z, angle);
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 };
 
 class Cone : public Mesh {
 private:
-	GLfloat height;
 	Disk base;
 public:
-	Cone(GLfloat radius, GLfloat height, GLint slices) {
-		base = Disk(radius, slices, { 0, 0, 0 }, { 0, 1, 0 });
-		this->height = height;
+	Cone(GLfloat radius, GLfloat height, GLuint slices) {
+		base = Disk(radius, slices, { 0, -height / 2.0f, 0 }, { 0, -1, 0 });
 
 		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
 
 		vertices.push_back(0);
-		vertices.push_back(this->height);
+		vertices.push_back(height / 2.0f);
 		vertices.push_back(0);
 
 		normals.push_back(0);
@@ -326,7 +344,7 @@ public:
 			GLfloat const z = sin(2 * M_PI * slice * SLICE);
 
 			vertices.push_back(x * radius);
-			vertices.push_back(0);
+			vertices.push_back(-height / 2.0f);
 			vertices.push_back(z * radius);
 
 			normals.push_back(x);
@@ -337,8 +355,8 @@ public:
 			texcoords.push_back(-z * 0.5f + 0.5f);
 		}
 
-		int baseCenterIndex = 0;
-		for (int i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
+		GLuint baseCenterIndex = 0;
+		for (GLuint i = 0, k = baseCenterIndex + 1; i < slices; ++i, ++k)
 		{
 			if (i < slices - 1)
 			{
@@ -355,7 +373,7 @@ public:
 		}
 	}
 
-	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle) {
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {
 		glPushMatrix();
 
 		glTranslatef(x, y, z);
@@ -369,6 +387,7 @@ public:
 		glNormalPointer(GL_FLOAT, 0, &normals[0]);
 		glTexCoordPointer(2, GL_FLOAT, 0, &texcoords[0]);
 
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[29]);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, &indices[0]);
 
 		glDisableClientState(GL_VERTEX_ARRAY);
@@ -377,7 +396,157 @@ public:
 
 		glPopMatrix();
 
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[22]);
 		base.draw(x, y, z, angle);
 	}
 };
 
+class Torus : public Mesh {
+public:
+	Torus(GLfloat innerRadius, GLfloat outerRadius, GLuint nsides, GLuint rings) {
+		GLfloat const SIDE = 1. / (GLfloat)(nsides - 1);
+		GLfloat const RING = 1. / (GLfloat)(rings - 1);
+
+		GLuint ring, side;
+
+		for (side = 0; side < nsides; ++side) {
+			for (ring = 0; ring < rings; ++ring) {
+				GLfloat const x = (outerRadius + innerRadius * cos(2*  M_PI * side * SIDE)) * cos(2 * M_PI * ring * RING);
+				GLfloat const y = innerRadius * sin(2 * M_PI * side * SIDE);
+				GLfloat const z = (outerRadius + innerRadius * cos(2 * M_PI * side * SIDE)) * sin(2 * M_PI * ring * RING);
+
+				texcoords.push_back(ring * RING);
+				texcoords.push_back(side * SIDE);
+
+				vertices.push_back(x);
+				vertices.push_back(y);
+				vertices.push_back(z);
+
+				normals.push_back(x);
+				normals.push_back(y);
+				normals.push_back(z);
+			}
+		}
+
+		for (side = 0; side < nsides - 1; side++) {
+			for (ring = 0; ring < rings - 1; ring++) {
+				indices.push_back(side * rings + ring);
+				indices.push_back(side * rings + (ring + 1));
+				indices.push_back((side + 1) * rings + (ring + 1));
+				indices.push_back((side + 1) * rings + ring);
+			}
+		}
+	}
+
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[16]);
+		Mesh::draw(x, y, z, angle);
+	}
+};
+
+class Hyperboloid : public Mesh {
+private:
+	Disk top;
+	Disk base;
+public:
+	/**
+		@brief Parametric equation of a hyperboloid used here is: (x/a)^2 - y^2 + (z/a)^2 = 1
+	*/
+	Hyperboloid(GLfloat radius, GLfloat height, GLfloat slices, GLfloat stacks) {
+		top = Disk(radius, slices, { 0, height / 2.0f, 0 }, { 0, 1, 0 });
+		base = Disk(radius, slices, { 0, -height / 2.0f, 0 }, { 0, -1, 0 });
+
+		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
+		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
+		 
+		GLuint slice, stack;
+
+		for (stack = 0; stack < stacks; ++stack) {
+			for (slice = 0; slice < slices; ++slice) {
+				GLfloat u = 2 * M_PI * slice * SLICE;
+				GLfloat v = -height / 2.0f + height * stack * STACK;
+				GLfloat a = radius / sqrt(height * height / 4 + 1);
+				
+				GLfloat const x = cos(u) - v * sin(u);
+				GLfloat const y = v;
+				GLfloat const z = sin(u) + v * cos(u);
+
+				texcoords.push_back(slice * SLICE);
+				texcoords.push_back(stack * STACK);
+
+				vertices.push_back(x * a);
+				vertices.push_back(y);
+				vertices.push_back(z * a);
+
+				normals.push_back(x);
+				normals.push_back(y);
+				normals.push_back(z);
+			}
+		}
+
+		for (stack = 0; stack < stacks - 1; stack++) {
+			for (slice = 0; slice < slices - 1; slice++) {
+				indices.push_back(stack * slices + slice);
+				indices.push_back(stack * slices + (slice + 1));
+				indices.push_back((stack + 1) * slices + (slice + 1));
+				indices.push_back((stack + 1) * slices + slice);
+			}
+		}
+	}
+
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[27]);
+		Mesh::draw(x, y, z, angle);
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[6]);
+		top.draw(x, y, z, angle);
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[3]);
+		base.draw(x, y, z, angle);
+	}
+};
+
+class Paraboloid : public Mesh {
+public:
+	Paraboloid(GLfloat radius, GLfloat height, GLfloat slices, GLfloat stacks) {
+		GLfloat const STACK = 1. / (GLfloat)(stacks - 1);
+		GLfloat const SLICE = 1. / (GLfloat)(slices - 1);
+
+		GLuint slice, stack;
+
+		for (stack = 0; stack < stacks; ++stack) {
+			for (slice = 0; slice < slices; ++slice) {
+				GLfloat u = 2 * M_PI * slice * SLICE;
+				GLfloat v = height * stack * STACK;
+				GLfloat r = sqrt(v / height) * radius;
+
+				GLfloat const x = r * cos(u);
+				GLfloat const y = v;
+				GLfloat const z = r * sin(u);
+
+				texcoords.push_back(slice * SLICE);
+				texcoords.push_back(stack * STACK);
+
+				vertices.push_back(x);
+				vertices.push_back(-y + height / 2.0f);
+				vertices.push_back(z);
+
+				normals.push_back(x);
+				normals.push_back(y);
+				normals.push_back(z);
+			}
+		}
+
+		for (stack = 0; stack < stacks - 1; stack++) {
+			for (slice = 0; slice < slices - 1; slice++) {
+				indices.push_back(stack * slices + slice);
+				indices.push_back(stack * slices + (slice + 1));
+				indices.push_back((stack + 1) * slices + (slice + 1));
+				indices.push_back((stack + 1) * slices + slice);
+			}
+		}
+	}
+
+	void draw(GLfloat x, GLfloat y, GLfloat z, GLfloat angle, bool wired) {
+		if (!wired) glBindTexture(GL_TEXTURE_2D, textureIDList[1]);
+		Mesh::draw(x, y, z, angle);
+	}
+};
