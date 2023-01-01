@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "Mesh/Mesh.h"
+#include "Mesh.h"
 #include "Menu.h"
 
 static const char title[] = "20120584 - Lab 04 - 3D Drawing";

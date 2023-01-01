@@ -1,10 +1,10 @@
 #pragma once
-#include "../SOIL.h"
+#include "SOIL.h"
 #include <gl/glut.h>
 #include <vector>
 #include <iostream>
 #include <cmath>
-#include "../Texture.h"
+#include "Texture.h"
 
 #define M_PI 3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
